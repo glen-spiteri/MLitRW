@@ -1,0 +1,318 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Impact Multiplier</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/inter-ui/3.19.3/inter.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #10b981; /* Green for "Growth/Impact" */
+            --primary-dark: #059669;
+            --surface: #ffffff;
+            --background: #f3f4f6;
+            --text: #1f2937;
+            --border: #e5e7eb;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: var(--surface);
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1, h2, h3 { color: #111827; margin-top: 0; }
+        
+        .step { display: none; animation: fadeIn 0.4s ease-out; }
+        .step.active { display: block; }
+
+        label { display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.95rem; }
+        
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 0.875rem;
+            margin-bottom: 1.25rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        /* Range Slider Styling */
+        input[type="range"] {
+            width: 100%;
+            margin: 1rem 0 2rem 0;
+            accent-color: var(--primary);
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 1rem;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        button:hover { background-color: var(--primary-dark); transform: translateY(-1px); }
+
+        /* The Invoice/Feedback Card (Figures 3 & 4) */
+        .impact-card {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            position: relative;
+        }
+
+        .highlight-impact {
+            background-color: #fef08a; /* Yellow highlight from paper */
+            padding: 0 4px;
+            font-weight: 700;
+            color: #854d0e;
+        }
+
+        /* Warm Glow Stars */
+        .rating {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 2rem;
+        }
+        .star {
+            font-size: 2rem;
+            cursor: pointer;
+            color: #d1d5db;
+            transition: color 0.2s;
+        }
+        .star.selected { color: #fbbf24; }
+
+        .split-visual {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div id="step-1" class="step active">
+        <h2>Donation Bundling</h2>
+        <p style="color: #4b5563; font-size: 0.95rem;">Combine your favorite cause with a highly effective charity to maximize your impact.</p>
+        
+        <label for="favCharity">Your Favorite Charity (Name)</label>
+        <input type="text" id="favCharity" placeholder="e.g. Local Animal Shelter">
+
+        <label for="expertCharity">Choose an Expert-Recommended Charity</label>
+        <select id="expertCharity">
+            <option value="AMF">Against Malaria Foundation (AMF)</option>
+            <option value="GD">GiveDirectly (Cash Transfers)</option>
+        </select>
+
+        <label for="totalBudget">Total Donation Amount ($)</label>
+        <input type="number" id="totalBudget" placeholder="e.g. 100" oninput="updateSplitVisuals()">
+
+        <div style="margin-top: 1.5rem;">
+            <label>Adjust your Split</label>
+            <div class="split-visual">
+                <span id="fav-display">Favorite: $0</span>
+                <span id="expert-display">Expert: $0</span>
+            </div>
+            <input type="range" id="splitRange" min="0" max="100" value="50" oninput="updateSplitVisuals()">
+        </div>
+
+        <button onclick="showImpact()">Calculate Impact</button>
+    </div>
+
+    <div id="step-2" class="step">
+        <h2>Your Projected Impact</h2>
+        
+        <div class="impact-card">
+            <p id="impact-text"></p>
+        </div>
+
+        <label>How happy does making this contribution make you feel?</label>
+        <div class="rating" id="star-container">
+            <span class="star" onclick="rate(1)">★</span>
+            <span class="star" onclick="rate(2)">★</span>
+            <span class="star" onclick="rate(3)">★</span>
+            <span class="star" onclick="rate(4)">★</span>
+            <span class="star" onclick="rate(5)">★</span>
+            <span class="star" onclick="rate(6)">★</span>
+            <span class="star" onclick="rate(7)">★</span>
+        </div>
+
+        <button onclick="goToFinalStep()">Continue</button>
+    </div>
+
+    <div id="step-3" class="step">
+        <h2>Finalize Donation</h2>
+        <p>Thank you. Your feedback helps us understand how donors learn from impact.</p>
+        <p>Would you like to proceed with your donation?</p>
+        
+        <div style="background: #f9fafb; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+            <strong>Summary:</strong><br>
+            <span id="final-summary"></span>
+        </div>
+
+        <button onclick="submitData()">Confirm & Finish</button>
+        <div style="text-align: center; margin-top: 1rem;">
+            <a href="#" onclick="location.reload()" style="color: #6b7280; font-size: 0.875rem;">Cancel / Start Over</a>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // --- CONFIGURATION ---
+    // PASTE YOUR NEW GOOGLE SCRIPT URL HERE
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyMcCZdbpGvJRXY2lzE1YRphfji24sLe8YGhpXrjQ0ExZ8uFiUuGaT0OmmG_yu0zUrn/exec";
+
+    // Unit Costs derived from Paper (Figures 3 & 4)
+    const COST_PER_NET = 4.97; // $44.74 / 9
+    const COST_PER_DAY = 2.13; // $44.74 / 21
+
+    // State Variables
+    let sessionData = {
+        favCharity: "",
+        expertCharity: "",
+        totalBudget: 0,
+        expertAllocation: 0,
+        impactResult: "",
+        warmGlow: 0,
+        finalDecision: "Confirmed"
+    };
+
+    function updateSplitVisuals() {
+        const total = parseFloat(document.getElementById('totalBudget').value) || 0;
+        const expertPercent = parseInt(document.getElementById('splitRange').value);
+        const expertAmt = (total * (expertPercent / 100)).toFixed(2);
+        const favAmt = (total - expertAmt).toFixed(2);
+
+        document.getElementById('fav-display').innerText = `Favorite: $${favAmt} (${100-expertPercent}%)`;
+        document.getElementById('expert-display').innerText = `Expert: $${expertAmt} (${expertPercent}%)`;
+    }
+
+    function showImpact() {
+        const total = parseFloat(document.getElementById('totalBudget').value);
+        const expertPercent = parseInt(document.getElementById('splitRange').value);
+        
+        if (!total) { alert("Please enter a donation amount."); return; }
+
+        sessionData.favCharity = document.getElementById('favCharity').value || "Unspecified";
+        sessionData.expertCharity = document.getElementById('expertCharity').value;
+        sessionData.totalBudget = total;
+        
+        const expertAlloc = total * (expertPercent / 100);
+        sessionData.expertAllocation = expertAlloc.toFixed(2);
+
+        // GENERATE TEXT BASED ON FIGURES 3 & 4
+        let html = "";
+        
+        if (sessionData.expertCharity === "AMF") {
+            const nets = Math.max(1, Math.floor(expertAlloc / COST_PER_NET));
+            const families = nets; // Paper implies 1 net protects ~1 family unit in the text logic
+            html = `
+                Your <strong>$${expertAlloc.toFixed(2)}</strong> allocation to the Against Malaria Foundation covers the cost of <strong>${nets} bed nets</strong> that prevent malaria.
+                <br><br>
+                <span class="highlight-impact">Your support enables ${families} families to live free from the fear of malaria</span>, opening up opportunities for children to attend school.
+                <br><br>
+                Each net is a shield against disease and a promise of a better tomorrow.
+            `;
+            sessionData.impactResult = `${nets} Bed Nets`;
+        } else {
+            const days = Math.max(1, Math.floor(expertAlloc / COST_PER_DAY));
+            html = `
+                As a result of your <strong>$${expertAlloc.toFixed(2)}</strong> allocation to GiveDirectly, 
+                <span class="highlight-impact">someone in extreme poverty can live above the international poverty line for ${days} days.</span>
+                <br><br>
+                Every dollar GiveDirectly transfers to recipients helps families reach goals which are otherwise unachievable, like buying materials to build a safe home.
+            `;
+            sessionData.impactResult = `${days} Days Above Poverty`;
+        }
+
+        document.getElementById('impact-text').innerHTML = html;
+        
+        document.getElementById('step-1').classList.remove('active');
+        document.getElementById('step-2').classList.add('active');
+    }
+
+    function rate(score) {
+        sessionData.warmGlow = score;
+        const stars = document.querySelectorAll('.star');
+        stars.forEach((s, index) => {
+            if (index < score) s.classList.add('selected');
+            else s.classList.remove('selected');
+        });
+    }
+
+    function goToFinalStep() {
+        if (sessionData.warmGlow === 0) {
+            alert("Please select a rating before continuing.");
+            return;
+        }
+
+        const expertPercent = parseInt(document.getElementById('splitRange').value);
+        const favAmt = (sessionData.totalBudget - sessionData.expertAllocation).toFixed(2);
+
+        document.getElementById('final-summary').innerHTML = `
+            Favorite Charity (${sessionData.favCharity}): $${favAmt}<br>
+            ${sessionData.expertCharity}: $${sessionData.expertAllocation}
+        `;
+
+        document.getElementById('step-2').classList.remove('active');
+        document.getElementById('step-3').classList.add('active');
+    }
+
+    function submitData() {
+        const btn = document.querySelector("#step-3 button");
+        btn.innerText = "Processing...";
+        btn.disabled = true;
+
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(sessionData)
+        }).then(() => {
+            alert("Thank you! Your allocation has been recorded.");
+            location.reload();
+        }).catch(err => {
+            console.error(err);
+            alert("Saved locally (Offline Mode).");
+            btn.disabled = false;
+        });
+    }
+</script>
+
+</body>
+</html>
